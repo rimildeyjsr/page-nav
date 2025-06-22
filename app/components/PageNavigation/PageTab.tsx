@@ -33,7 +33,6 @@ export const PageTab = ({
   onCancel,
 }: PageTabProps) => {
   const handleContextMenu = (e: React.MouseEvent) => {
-    console.log("** right click");
     e.preventDefault();
 
     // Get the tab element's position
