@@ -80,18 +80,6 @@ export type PageNavigationAction =
       pageId: string | null;
     };
 
-export interface PageTabProps {
-  page: Page;
-  isActive: boolean;
-  isFocused: boolean;
-  isHovered: boolean;
-  showThreeDots: boolean;
-  onSelect: (pageId: string) => void;
-  onContextMenu: (pageId: string, position: { x: number; y: number }) => void;
-  onFocus: (pageId: string | null) => void;
-  onHover: (pageId: string | null) => void;
-}
-
 export interface ContextMenuProps {
   isOpen: boolean;
   position: { x: number; y: number };

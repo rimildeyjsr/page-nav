@@ -1,16 +1,36 @@
-import { PageTabProps } from "@/components/PageNavigation/types";
+import { Page } from "@/components/PageNavigation/types";
 import { DocumentIcon } from "@/components/PageNavigation/icons/DocumentIcon";
 import { ThreeDotsIcon } from "@/components/PageNavigation/icons/ThreeDots";
+import { EditablePageName } from "@/components/PageNavigation/EditablePageName";
+
+export interface PageTabProps {
+  page: Page;
+  isActive: boolean;
+  isFocused: boolean;
+  isHovered: boolean;
+  showThreeDots: boolean;
+  isEditing: boolean;
+  onSelect: (pageId: string) => void;
+  onContextMenu: (pageId: string, position: { x: number; y: number }) => void;
+  onFocus: (pageId: string | null) => void;
+  onHover: (pageId: string | null) => void;
+  onSave: (pageId: string, name: string) => void;
+  onCancel: () => void;
+}
 
 export const PageTab = ({
   page,
   isActive,
   isFocused,
+  isHovered,
   showThreeDots,
+  isEditing,
   onSelect,
   onContextMenu,
   onFocus,
   onHover,
+  onSave,
+  onCancel,
 }: PageTabProps) => {
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -20,12 +40,18 @@ export const PageTab = ({
   return (
     <div
       className={`
-        flex items-center gap-2 px-4 py-10 rounded-lg cursor-pointer
-        transition-colors duration-200
-        ${isActive ? "bg-blue-50 border border-blue-200" : "hover:bg-gray-50"}
+        flex items-center gap-2 px-3 py-1.5 rounded-md cursor-pointer border border-gray-200
+        transition-all duration-200 ease-in-out
+        ${
+          isActive
+            ? "bg-white text-black"
+            : isHovered
+              ? "bg-gray-400 text-gray-700"
+              : "bg-gray-100 text-gray-600"
+        }
         ${isFocused ? "ring-2 ring-blue-500 ring-opacity-50" : ""}
       `}
-      onClick={() => onSelect(page.id)}
+      onClick={() => !isEditing && onSelect(page.id)}
       onContextMenu={handleContextMenu}
       onFocus={() => onFocus(page.id)}
       onBlur={() => onFocus(null)}
@@ -33,21 +59,29 @@ export const PageTab = ({
       onMouseLeave={() => onHover(null)}
       tabIndex={0}
     >
-      <DocumentIcon isActive={isActive} />
-      <span
-        className={`text-sm ${isActive ? "text-blue-900" : "text-gray-700"}`}
-      >
-        {page.name}
-      </span>
-      {showThreeDots && (
+      <DocumentIcon isActive={isActive} className="w-4 h-4 flex-shrink-0" />
+
+      {isEditing ? (
+        <EditablePageName
+          initialName={page.name}
+          onSaveAction={(name) => onSave(page.id, name)}
+          onCancelAction={onCancel}
+        />
+      ) : (
+        <span className="text-sm font-medium whitespace-nowrap">
+          {page.name}
+        </span>
+      )}
+
+      {showThreeDots && !isEditing && (
         <button
-          className="ml-2 p-1 hover:bg-gray-200 rounded"
+          className="ml-1 p-0.5 hover:bg-orange-200 rounded transition-colors duration-150"
           onClick={(e) => {
             e.stopPropagation();
             handleContextMenu(e);
           }}
         >
-          <ThreeDotsIcon />
+          <ThreeDotsIcon className="w-3 h-3" />
         </button>
       )}
     </div>
