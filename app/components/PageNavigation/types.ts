@@ -79,12 +79,3 @@ export type PageNavigationAction =
       type: typeof PAGE_NAVIGATION_ACTIONS.SET_HOVERED_PAGE;
       pageId: string | null;
     };
-
-export interface ContextMenuProps {
-  isOpen: boolean;
-  position: { x: number; y: number };
-  onClose: () => void;
-  onRename: () => void;
-  onDuplicate: () => void;
-  onDelete: () => void;
-}

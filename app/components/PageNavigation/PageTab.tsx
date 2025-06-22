@@ -33,8 +33,25 @@ export const PageTab = ({
   onCancel,
 }: PageTabProps) => {
   const handleContextMenu = (e: React.MouseEvent) => {
+    console.log("** right click");
     e.preventDefault();
-    onContextMenu(page.id, { x: e.clientX, y: e.clientY });
+
+    // Get the tab element's position
+    const rect = e.currentTarget.getBoundingClientRect();
+    onContextMenu(page.id, { x: rect.left, y: rect.top - 16 });
+  };
+
+  const handleRightClick = (e: React.MouseEvent) => {
+    if (e.button === 2) {
+      e.preventDefault();
+
+      const rect = e.currentTarget.getBoundingClientRect();
+
+      onContextMenu(page.id, {
+        x: rect.left,
+        y: rect.top,
+      });
+    }
   };
 
   return (
@@ -52,6 +69,7 @@ export const PageTab = ({
         ${isFocused ? "ring-2 ring-blue-500 ring-opacity-50" : ""}
       `}
       onClick={() => !isEditing && onSelect(page.id)}
+      onMouseDown={handleRightClick}
       onContextMenu={handleContextMenu}
       onFocus={() => onFocus(page.id)}
       onBlur={() => onFocus(null)}
@@ -75,7 +93,7 @@ export const PageTab = ({
 
       {showThreeDots && !isEditing && (
         <button
-          className="ml-1 p-0.5 hover:bg-orange-200 rounded transition-colors duration-150"
+          className="ml-1 p-0.5 rounded transition-colors duration-150"
           onClick={(e) => {
             e.stopPropagation();
             handleContextMenu(e);

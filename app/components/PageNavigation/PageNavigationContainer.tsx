@@ -4,6 +4,7 @@ import { useReducer, Fragment } from "react";
 import { PageTab } from "@/components/PageNavigation/PageTab";
 import { Divider } from "@/components/PageNavigation/Divider";
 import { AddPageButton } from "@/components/PageNavigation/AddPageButton";
+import { ContextMenu } from "@/components/PageNavigation/ContextMenu";
 import { pageNavigationReducer } from "@/components/PageNavigation/pageNavigationReducer";
 import { mockInitialState } from "@/components/PageNavigation/mockData";
 import { PAGE_NAVIGATION_ACTIONS } from "@/components/PageNavigation/types";
@@ -53,6 +54,22 @@ export const PageNavigationContainer = () => {
     dispatch({ type: PAGE_NAVIGATION_ACTIONS.STOP_EDITING });
   };
 
+  const handleCloseContextMenu = () => {
+    dispatch({ type: PAGE_NAVIGATION_ACTIONS.CLOSE_CONTEXT_MENU });
+  };
+
+  const handleRename = () => {
+    console.log("Rename clicked for page:", state.contextMenu.pageId);
+  };
+
+  const handleDuplicate = () => {
+    console.log("Duplicate clicked for page:", state.contextMenu.pageId);
+  };
+
+  const handleDelete = () => {
+    console.log("Delete clicked for page:", state.contextMenu.pageId);
+  };
+
   return (
     <div className="flex items-center p-4">
       <div
@@ -77,12 +94,22 @@ export const PageNavigationContainer = () => {
               onSave={handleSave}
               onCancel={handleCancelEdit}
             />
+
             <Divider />
           </Fragment>
         ))}
 
         <AddPageButton onClick={handleAddPage} />
       </div>
+
+      <ContextMenu
+        isOpen={state.contextMenu.isOpen}
+        position={state.contextMenu.position}
+        onCloseAction={handleCloseContextMenu}
+        onRenameAction={handleRename}
+        onDuplicateAction={handleDuplicate}
+        onDeleteAction={handleDelete}
+      />
     </div>
   );
 };
