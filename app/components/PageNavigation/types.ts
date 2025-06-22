@@ -24,24 +24,61 @@ export interface PageNavigationState {
   };
 }
 
+export const PAGE_NAVIGATION_ACTIONS = {
+  SELECT_PAGE: "SELECT_PAGE",
+  ADD_PAGE: "ADD_PAGE",
+  RENAME_PAGE: "RENAME_PAGE",
+  REORDER_PAGES: "REORDER_PAGES",
+  START_DRAG: "START_DRAG",
+  END_DRAG: "END_DRAG",
+  OPEN_CONTEXT_MENU: "OPEN_CONTEXT_MENU",
+  CLOSE_CONTEXT_MENU: "CLOSE_CONTEXT_MENU",
+  START_EDITING: "START_EDITING",
+  STOP_EDITING: "STOP_EDITING",
+  SET_HOVER_GAP: "SET_HOVER_GAP",
+  SET_FOCUSED_PAGE: "SET_FOCUSED_PAGE",
+  SET_HOVERED_PAGE: "SET_HOVERED_PAGE",
+} as const;
+
 export type PageNavigationAction =
-  | { type: "SELECT_PAGE"; pageId: string }
-  | { type: "ADD_PAGE"; afterIndex: number }
-  | { type: "RENAME_PAGE"; pageId: string; name: string }
-  | { type: "REORDER_PAGES"; fromIndex: number; toIndex: number }
-  | { type: "START_DRAG"; pageId: string }
-  | { type: "END_DRAG" }
+  | { type: typeof PAGE_NAVIGATION_ACTIONS.SELECT_PAGE; pageId: string }
   | {
-      type: "OPEN_CONTEXT_MENU";
+      type: typeof PAGE_NAVIGATION_ACTIONS.ADD_PAGE;
+      afterIndex: number;
+      page?: Partial<Page>;
+    }
+  | {
+      type: typeof PAGE_NAVIGATION_ACTIONS.RENAME_PAGE;
+      pageId: string;
+      name: string;
+    }
+  | {
+      type: typeof PAGE_NAVIGATION_ACTIONS.REORDER_PAGES;
+      fromIndex: number;
+      toIndex: number;
+    }
+  | { type: typeof PAGE_NAVIGATION_ACTIONS.START_DRAG; pageId: string }
+  | { type: typeof PAGE_NAVIGATION_ACTIONS.END_DRAG }
+  | {
+      type: typeof PAGE_NAVIGATION_ACTIONS.OPEN_CONTEXT_MENU;
       pageId: string;
       position: { x: number; y: number };
     }
-  | { type: "CLOSE_CONTEXT_MENU" }
-  | { type: "START_EDITING"; pageId: string }
-  | { type: "STOP_EDITING" }
-  | { type: "SET_HOVER_GAP"; gapIndex: number | null }
-  | { type: "SET_FOCUSED_PAGE"; pageId: string | null }
-  | { type: "SET_HOVERED_PAGE"; pageId: string | null };
+  | { type: typeof PAGE_NAVIGATION_ACTIONS.CLOSE_CONTEXT_MENU }
+  | { type: typeof PAGE_NAVIGATION_ACTIONS.START_EDITING; pageId: string }
+  | { type: typeof PAGE_NAVIGATION_ACTIONS.STOP_EDITING }
+  | {
+      type: typeof PAGE_NAVIGATION_ACTIONS.SET_HOVER_GAP;
+      gapIndex: number | null;
+    }
+  | {
+      type: typeof PAGE_NAVIGATION_ACTIONS.SET_FOCUSED_PAGE;
+      pageId: string | null;
+    }
+  | {
+      type: typeof PAGE_NAVIGATION_ACTIONS.SET_HOVERED_PAGE;
+      pageId: string | null;
+    };
 
 export interface PageTabProps {
   page: Page;
