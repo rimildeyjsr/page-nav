@@ -51,7 +51,7 @@ export interface PageTabProps {
   showThreeDots: boolean;
   onSelect: (pageId: string) => void;
   onContextMenu: (pageId: string, position: { x: number; y: number }) => void;
-  onFocus: (pageId: string) => void;
+  onFocus: (pageId: string | null) => void;
   onHover: (pageId: string | null) => void;
 }
 
