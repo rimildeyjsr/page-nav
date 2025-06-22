@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, beforeEach, afterAll, vi } from "vitest";
 import { PageNavigationContainer } from "@/components/PageNavigation/PageNavigationContainer";
+import userEvent from "@testing-library/user-event";
 
 const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
@@ -407,6 +408,265 @@ describe("PageNavigationContainer", () => {
           expect(tab).toHaveAttribute("tabindex");
         });
       });
+    });
+  });
+
+  describe("Hover Add Button Integration", () => {
+    it("should show hover add buttons in gaps between pages", () => {
+      const { container } = render(<PageNavigationContainer />);
+
+      const dividers = container.querySelectorAll(
+        ".relative.flex.items-center",
+      );
+      expect(dividers).toHaveLength(4);
+
+      fireEvent.mouseEnter(dividers[0]);
+
+      expect(
+        screen.getByLabelText("Add page after position 0"),
+      ).toBeInTheDocument();
+    });
+
+    it("should NOT show hover add button on last divider (before Add page button)", () => {
+      const { container } = render(<PageNavigationContainer />);
+
+      const dividers = container.querySelectorAll(
+        ".relative.flex.items-center",
+      );
+      const lastDivider = dividers[dividers.length - 1];
+
+      fireEvent.mouseEnter(lastDivider);
+
+      expect(
+        screen.queryByRole("button", { name: /Add page after position/ }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("should add new page when clicking hover add button", async () => {
+      const user = userEvent.setup();
+      const { container } = render(<PageNavigationContainer />);
+
+      expect(screen.getByText("Info")).toBeInTheDocument();
+      expect(screen.getByText("Details")).toBeInTheDocument();
+      expect(screen.getByText("Other")).toBeInTheDocument();
+      expect(screen.getByText("Ending")).toBeInTheDocument();
+
+      const dividers = container.querySelectorAll(
+        ".relative.flex.items-center",
+      );
+      fireEvent.mouseEnter(dividers[0]);
+
+      const hoverButton = screen.getByLabelText("Add page after position 0");
+      await user.click(hoverButton);
+
+      expect(screen.getByDisplayValue("New Page")).toBeInTheDocument();
+
+      const pageTexts = [
+        screen.queryByText("Info"),
+        screen.queryByText("Details"),
+        screen.queryByText("Other"),
+        screen.queryByText("Ending"),
+        screen.queryByDisplayValue("New Page"),
+      ].filter(Boolean);
+      expect(pageTexts).toHaveLength(5);
+    });
+
+    it("should add page in correct position when using hover button", async () => {
+      const user = userEvent.setup();
+      const { container } = render(<PageNavigationContainer />);
+
+      const dividers = container.querySelectorAll(
+        ".relative.flex.items-center",
+      );
+      fireEvent.mouseEnter(dividers[1]);
+
+      const hoverButton = screen.getByLabelText("Add page after position 1");
+      await user.click(hoverButton);
+
+      expect(screen.getByDisplayValue("New Page")).toBeInTheDocument();
+
+      const allTabs = screen.getAllByRole("tab");
+      const tabNames = allTabs.map((tab) => {
+        const input = tab.querySelector("input");
+        const span = tab.querySelector("span");
+        return input ? input.value : span?.textContent;
+      });
+
+      expect(tabNames).toEqual([
+        "Info",
+        "Details",
+        "New Page",
+        "Other",
+        "Ending",
+      ]);
+    });
+
+    it("should hide hover button when mouse leaves divider", () => {
+      const { container } = render(<PageNavigationContainer />);
+
+      const dividers = container.querySelectorAll(
+        ".relative.flex.items-center",
+      );
+      const firstDivider = dividers[0];
+
+      fireEvent.mouseEnter(firstDivider);
+      expect(
+        screen.getByLabelText("Add page after position 0"),
+      ).toBeInTheDocument();
+
+      fireEvent.mouseLeave(firstDivider);
+      expect(
+        screen.queryByLabelText("Add page after position 0"),
+      ).not.toBeInTheDocument();
+    });
+
+    it("should handle multiple divider hovers correctly", () => {
+      const { container } = render(<PageNavigationContainer />);
+
+      const dividers = container.querySelectorAll(
+        ".relative.flex.items-center",
+      );
+
+      fireEvent.mouseEnter(dividers[0]);
+      expect(
+        screen.getByLabelText("Add page after position 0"),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByLabelText("Add page after position 1"),
+      ).not.toBeInTheDocument();
+
+      fireEvent.mouseLeave(dividers[0]);
+      fireEvent.mouseEnter(dividers[1]);
+      expect(
+        screen.queryByLabelText("Add page after position 0"),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.getByLabelText("Add page after position 1"),
+      ).toBeInTheDocument();
+    });
+  });
+
+  describe("Divider Visual Consistency", () => {
+    it("should always show dotted lines between all pages", () => {
+      const { container } = render(<PageNavigationContainer />);
+
+      const dottedLines = container.querySelectorAll(
+        'div[style*="repeating-linear-gradient"]',
+      );
+      expect(dottedLines).toHaveLength(4);
+    });
+
+    it("should maintain visual consistency when pages are added", async () => {
+      const user = userEvent.setup();
+      const { container } = render(<PageNavigationContainer />);
+
+      const addButton = screen.getByText("Add page");
+      await user.click(addButton);
+
+      const dottedLines = container.querySelectorAll(
+        'div[style*="repeating-linear-gradient"]',
+      );
+      expect(dottedLines).toHaveLength(5);
+    });
+  });
+
+  describe("Edit Mode Integration", () => {
+    it("should start in edit mode when adding via hover button", async () => {
+      const user = userEvent.setup();
+      const { container } = render(<PageNavigationContainer />);
+
+      const dividers = container.querySelectorAll(
+        ".relative.flex.items-center",
+      );
+      fireEvent.mouseEnter(dividers[0]);
+
+      const hoverButton = screen.getByLabelText("Add page after position 0");
+      await user.click(hoverButton);
+
+      const input = screen.getByDisplayValue("New Page");
+      expect(input).toBeInTheDocument();
+      expect(input).toHaveFocus();
+    });
+
+    it("should save new page name when editing via hover-added page", async () => {
+      const user = userEvent.setup();
+      const { container } = render(<PageNavigationContainer />);
+
+      const dividers = container.querySelectorAll(
+        ".relative.flex.items-center",
+      );
+      fireEvent.mouseEnter(dividers[0]);
+
+      const hoverButton = screen.getByLabelText("Add page after position 0");
+      await user.click(hoverButton);
+
+      const input = screen.getByDisplayValue("New Page");
+      await user.clear(input);
+      await user.type(input, "Custom Name");
+      await user.keyboard("{Enter}");
+
+      expect(screen.getByText("Custom Name")).toBeInTheDocument();
+      expect(screen.queryByDisplayValue("Custom Name")).not.toBeInTheDocument();
+    });
+  });
+
+  describe("Interaction with Existing Features", () => {
+    it("should not interfere with tab selection", async () => {
+      const user = userEvent.setup();
+      const { container } = render(<PageNavigationContainer />);
+
+      const detailsTab = screen.getByText("Details").closest("div");
+      await user.click(detailsTab!);
+
+      expect(detailsTab).toHaveClass("bg-white", "text-black");
+
+      const dividers = container.querySelectorAll(
+        ".relative.flex.items-center",
+      );
+      fireEvent.mouseEnter(dividers[0]);
+      expect(
+        screen.getByLabelText("Add page after position 0"),
+      ).toBeInTheDocument();
+    });
+
+    it("should not interfere with context menu", async () => {
+      const { container } = render(<PageNavigationContainer />);
+
+      const dividers = container.querySelectorAll(
+        ".relative.flex.items-center",
+      );
+      fireEvent.mouseEnter(dividers[0]);
+      expect(
+        screen.getByLabelText("Add page after position 0"),
+      ).toBeInTheDocument();
+
+      const infoTab = screen.getByText("Info").closest("div");
+      fireEvent.contextMenu(infoTab!);
+
+      expect(screen.getByText("Settings")).toBeInTheDocument();
+
+      expect(
+        screen.getByLabelText("Add page after position 0"),
+      ).toBeInTheDocument();
+    });
+
+    it("should work with keyboard navigation", () => {
+      const { container } = render(<PageNavigationContainer />);
+      const navigationContainer = screen.getByRole("tablist");
+
+      navigationContainer.focus();
+      fireEvent.keyDown(navigationContainer, { key: "ArrowRight" });
+
+      const focusedTab = document.activeElement;
+      expect(focusedTab).toHaveAttribute("role", "tab");
+
+      const dividers = container.querySelectorAll(
+        ".relative.flex.items-center",
+      );
+      fireEvent.mouseEnter(dividers[0]);
+      expect(
+        screen.getByLabelText("Add page after position 0"),
+      ).toBeInTheDocument();
     });
   });
 });

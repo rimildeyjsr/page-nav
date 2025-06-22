@@ -177,6 +177,17 @@ export const PageNavigationContainer = () => {
     dispatch({ type: PAGE_NAVIGATION_ACTIONS.START_EDITING, pageId });
   };
 
+  const handleHoverGap = (gapIndex: number | null) => {
+    dispatch({ type: PAGE_NAVIGATION_ACTIONS.SET_HOVER_GAP, gapIndex });
+  };
+
+  const handleAddPageAtGap = (afterIndex: number) => {
+    dispatch({
+      type: PAGE_NAVIGATION_ACTIONS.ADD_PAGE,
+      afterIndex,
+    });
+  };
+
   return (
     <div
       ref={containerRef}
@@ -191,7 +202,7 @@ export const PageNavigationContainer = () => {
           gridTemplateColumns: `repeat(${state.pages.length}, max-content 40px) max-content`,
         }}
       >
-        {state.pages.map((page) => (
+        {state.pages.map((page, index) => (
           <Fragment key={page.id}>
             <PageTab
               page={page}
@@ -209,7 +220,13 @@ export const PageNavigationContainer = () => {
               onStartEdit={handleStartEdit}
             />
 
-            <Divider />
+            <Divider
+              gapIndex={index}
+              isHovered={state.hoverState.hoveredGap === index}
+              onHoverChange={handleHoverGap}
+              onAddPage={handleAddPageAtGap}
+              showHoverButton={index < state.pages.length - 1}
+            />
           </Fragment>
         ))}
 
