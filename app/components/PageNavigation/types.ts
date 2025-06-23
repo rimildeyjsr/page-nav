@@ -31,6 +31,7 @@ export const PAGE_NAVIGATION_ACTIONS = {
   REORDER_PAGES: "REORDER_PAGES",
   START_DRAG: "START_DRAG",
   END_DRAG: "END_DRAG",
+  SET_DRAG_OVER: "SET_DRAG_OVER",
   OPEN_CONTEXT_MENU: "OPEN_CONTEXT_MENU",
   CLOSE_CONTEXT_MENU: "CLOSE_CONTEXT_MENU",
   START_EDITING: "START_EDITING",
@@ -59,6 +60,10 @@ export type PageNavigationAction =
     }
   | { type: typeof PAGE_NAVIGATION_ACTIONS.START_DRAG; pageId: string }
   | { type: typeof PAGE_NAVIGATION_ACTIONS.END_DRAG }
+  | {
+      type: typeof PAGE_NAVIGATION_ACTIONS.SET_DRAG_OVER;
+      overId: string | null;
+    }
   | {
       type: typeof PAGE_NAVIGATION_ACTIONS.OPEN_CONTEXT_MENU;
       pageId: string;

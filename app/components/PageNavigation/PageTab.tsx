@@ -3,6 +3,8 @@ import { DocumentIcon } from "@/components/PageNavigation/icons/DocumentIcon";
 import { ThreeDotsIcon } from "@/components/PageNavigation/icons/ThreeDots";
 import { EditablePageName } from "@/components/PageNavigation/EditablePageName";
 import { useEffect, useRef } from "react";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 export interface PageTabProps {
   page: Page;
@@ -11,6 +13,7 @@ export interface PageTabProps {
   isHovered: boolean;
   showThreeDots: boolean;
   isEditing: boolean;
+  isDragging?: boolean;
   onSelect: (pageId: string) => void;
   onContextMenu: (pageId: string, position: { x: number; y: number }) => void;
   onFocus: (pageId: string | null) => void;
@@ -36,6 +39,25 @@ export const PageTab = ({
   onStartEdit,
 }: PageTabProps) => {
   const tabRef = useRef<HTMLDivElement>(null);
+
+  // Set up sortable functionality
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging: isSortableDragging,
+  } = useSortable({
+    id: page.id,
+    disabled: isEditing, // Disable dragging while editing
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isSortableDragging ? 0.5 : 1,
+  };
 
   useEffect(() => {
     if (isFocused && tabRef.current && !isEditing) {
@@ -106,9 +128,18 @@ export const PageTab = ({
     }
   };
 
+  // Combine refs for both tab functionality and sortable
+  const combinedRef = (node: HTMLDivElement | null) => {
+    setNodeRef(node);
+    if (node) {
+      tabRef.current = node;
+    }
+  };
+
   return (
     <div
-      ref={tabRef}
+      ref={combinedRef}
+      style={style}
       className={`
         flex items-center gap-2 px-3 py-1.5 rounded-md cursor-pointer border border-gray-200
         transition-all duration-200 ease-in-out
@@ -120,12 +151,13 @@ export const PageTab = ({
               : "bg-gray-100 text-gray-600"
         }
         ${isFocused ? "ring-2 ring-blue-500 ring-opacity-50" : ""}
+        ${isSortableDragging ? "shadow-lg rotate-3 scale-105" : ""}
         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50
       `}
-      role="tab"
+      // role="tab"
       aria-selected={isActive}
       aria-label={`Page: ${page.name}`}
-      tabIndex={isFocused ? 0 : -1}
+      // tabIndex={isFocused ? 0 : -1}
       onClick={handleClick}
       onMouseDown={handleRightClick}
       onContextMenu={handleContextMenu}
@@ -134,6 +166,8 @@ export const PageTab = ({
       onBlur={() => onFocus(null)}
       onMouseEnter={() => onHover(page.id)}
       onMouseLeave={() => onHover(null)}
+      {...attributes}
+      {...(!isEditing ? listeners : {})} // Only add drag listeners when not editing
     >
       <DocumentIcon isActive={isActive} className="w-4 h-4 flex-shrink-0" />
 
@@ -144,7 +178,7 @@ export const PageTab = ({
           onCancelAction={onCancel}
         />
       ) : (
-        <span className="text-sm font-medium whitespace-nowrap">
+        <span className="text-sm font-medium whitespace-nowrap select-none">
           {page.name}
         </span>
       )}

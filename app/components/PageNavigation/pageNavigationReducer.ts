@@ -112,6 +112,11 @@ export const pageNavigationReducer = (
           draggedPageId: action.pageId,
           overId: null,
         },
+        contextMenu: {
+          isOpen: false,
+          pageId: null,
+          position: { x: 0, y: 0 },
+        },
       };
 
     case PAGE_NAVIGATION_ACTIONS.END_DRAG:
@@ -121,6 +126,15 @@ export const pageNavigationReducer = (
           isDragging: false,
           draggedPageId: null,
           overId: null,
+        },
+      };
+
+    case PAGE_NAVIGATION_ACTIONS.SET_DRAG_OVER:
+      return {
+        ...state,
+        dragState: {
+          ...state.dragState,
+          overId: action.overId,
         },
       };
 
