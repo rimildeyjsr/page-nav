@@ -28,7 +28,12 @@ export const pageNavigationReducer = (
         ...state,
         pages: newPages,
         activePageId: newPage.id,
-        editingPageId: newPage.id, // Start editing immediately
+        editingPageId: newPage.id,
+        contextMenu: {
+          isOpen: false,
+          pageId: null,
+          position: { x: 0, y: 0 },
+        },
       };
     }
 

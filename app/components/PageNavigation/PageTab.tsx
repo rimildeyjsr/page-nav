@@ -134,6 +134,23 @@ export const PageTab = ({
     }
   };
 
+  const combinedAttributes = isEditing
+    ? {
+        role: "tab",
+        "aria-selected": isActive,
+        "aria-label": `Page: ${page.name}`,
+        tabIndex: isFocused ? 0 : -1,
+      }
+    : {
+        ...attributes,
+        role: "tab",
+        "aria-selected": isActive,
+        "aria-label": `Page: ${page.name}`,
+        tabIndex: isFocused ? 0 : -1,
+      };
+
+  const combinedListeners = isEditing ? {} : listeners;
+
   return (
     <div
       ref={combinedRef}
@@ -152,10 +169,8 @@ export const PageTab = ({
         ${isSortableDragging ? "shadow-lg rotate-3 scale-105" : ""}
         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50
       `}
-      role="tab"
-      aria-selected={isActive}
-      aria-label={`Page: ${page.name}`}
-      tabIndex={isFocused ? 0 : -1}
+      {...combinedAttributes}
+      {...combinedListeners}
       onClick={handleClick}
       onMouseDown={handleRightClick}
       onContextMenu={handleContextMenu}
@@ -164,7 +179,6 @@ export const PageTab = ({
       onBlur={() => onFocus(null)}
       onMouseEnter={() => onHover(page.id)}
       onMouseLeave={() => onHover(null)}
-      {...(isEditing ? {} : { ...attributes, ...listeners })} // Only add sortable props when not editing
     >
       <DocumentIcon isActive={isActive} className="w-4 h-4 flex-shrink-0" />
 

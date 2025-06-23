@@ -1,6 +1,13 @@
 "use client";
 
-import { useReducer, Fragment, useEffect, useRef, useCallback } from "react";
+import {
+  useReducer,
+  Fragment,
+  useEffect,
+  useRef,
+  useCallback,
+  useState,
+} from "react";
 import { PageTab } from "@/components/PageNavigation/PageTab";
 import { Divider } from "@/components/PageNavigation/Divider";
 import { AddPageButton } from "@/components/PageNavigation/AddPageButton";
@@ -30,11 +37,11 @@ import {
 export const PageNavigationContainer = () => {
   const [state, dispatch] = useReducer(pageNavigationReducer, mockInitialState);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isClient, setIsClient] = useState(false);
 
-  // Configure sensors for drag and drop
   const pointerSensor = useSensor(PointerSensor, {
     activationConstraint: {
-      distance: 8, // Require 8px movement before drag starts
+      distance: 8,
     },
   });
 
@@ -43,6 +50,10 @@ export const PageNavigationContainer = () => {
   });
 
   const sensors = useSensors(pointerSensor, keyboardSensor);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handleArrowNavigation = useCallback(
     (direction: "left" | "right") => {
@@ -69,14 +80,12 @@ export const PageNavigationContainer = () => {
     [state.activePageId, state.focusedPageId, state.pages],
   );
 
-  // Enhanced keyboard navigation handler that works with drag and drop
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (!containerRef.current?.contains(document.activeElement)) {
         return;
       }
 
-      // Don't interfere with drag and drop keyboard operations
       if (state.dragState.isDragging && !["Escape"].includes(event.key)) {
         return;
       }
@@ -138,7 +147,6 @@ export const PageNavigationContainer = () => {
           } else if (state.contextMenu.isOpen) {
             handleCloseContextMenu();
           } else if (state.dragState.isDragging) {
-            // Cancel drag operation
             dispatch({ type: PAGE_NAVIGATION_ACTIONS.END_DRAG });
           }
           break;
@@ -155,7 +163,6 @@ export const PageNavigationContainer = () => {
     handleArrowNavigation,
   ]);
 
-  // Drag and drop event handlers
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
     dispatch({
@@ -163,19 +170,15 @@ export const PageNavigationContainer = () => {
       pageId: active.id as string,
     });
 
-    // Close context menu if open
     if (state.contextMenu.isOpen) {
       handleCloseContextMenu();
     }
   };
 
   const handleDragOver = (event: DragOverEvent) => {
-    // Could add visual feedback for drop zones here if needed
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      // Update drag state with current over target
-      // This could be used for visual feedback
     }
   };
 
@@ -250,6 +253,7 @@ export const PageNavigationContainer = () => {
         type: PAGE_NAVIGATION_ACTIONS.START_EDITING,
         pageId: state.contextMenu.pageId,
       });
+      handleCloseContextMenu();
     }
     console.log("Rename clicked for page:", state.contextMenu.pageId);
   };
@@ -267,11 +271,13 @@ export const PageNavigationContainer = () => {
           page: { name: `${originalPage.name} Copy` },
         });
       }
+      handleCloseContextMenu();
     }
     console.log("Duplicate clicked for page:", state.contextMenu.pageId);
   };
 
   const handleDelete = () => {
+    handleCloseContextMenu();
     console.log("Delete clicked for page:", state.contextMenu.pageId);
   };
 
@@ -290,10 +296,72 @@ export const PageNavigationContainer = () => {
     });
   };
 
-  // Get the currently dragged page for the overlay
   const draggedPage = state.dragState.draggedPageId
     ? state.pages.find((p) => p.id === state.dragState.draggedPageId)
     : null;
+
+  const renderContent = () => (
+    <div
+      className="grid items-center gap-0"
+      style={{
+        gridTemplateColumns: `repeat(${state.pages.length}, max-content 40px) max-content`,
+      }}
+    >
+      {state.pages.map((page, index) => (
+        <Fragment key={page.id}>
+          <PageTab
+            page={page}
+            isActive={state.activePageId === page.id}
+            isFocused={state.focusedPageId === page.id}
+            isHovered={state.hoveredPageId === page.id}
+            showThreeDots={state.activePageId === page.id}
+            isEditing={state.editingPageId === page.id}
+            isDragging={isClient && state.dragState.draggedPageId === page.id}
+            onSelect={handleSelectPage}
+            onContextMenu={handleContextMenu}
+            onFocus={handleFocus}
+            onHover={handleHover}
+            onSave={handleSave}
+            onCancel={handleCancelEdit}
+            onStartEdit={handleStartEdit}
+          />
+
+          <Divider
+            gapIndex={index}
+            isHovered={state.hoverState.hoveredGap === index}
+            onHoverChange={handleHoverGap}
+            onAddPage={handleAddPageAtGap}
+            showHoverButton={index < state.pages.length - 1}
+          />
+        </Fragment>
+      ))}
+
+      <AddPageButton onClick={handleAddPage} />
+    </div>
+  );
+
+  if (!isClient) {
+    return (
+      <div
+        ref={containerRef}
+        className="flex items-center p-4"
+        tabIndex={-1}
+        role="tablist"
+        aria-label="Page navigation"
+      >
+        {renderContent()}
+
+        <ContextMenu
+          isOpen={state.contextMenu.isOpen}
+          position={state.contextMenu.position}
+          onCloseAction={handleCloseContextMenu}
+          onRenameAction={handleRename}
+          onDuplicateAction={handleDuplicate}
+          onDeleteAction={handleDelete}
+        />
+      </div>
+    );
+  }
 
   return (
     <DndContext
@@ -314,43 +382,7 @@ export const PageNavigationContainer = () => {
           items={state.pages.map((p) => p.id)}
           strategy={horizontalListSortingStrategy}
         >
-          <div
-            className="grid items-center gap-0"
-            style={{
-              gridTemplateColumns: `repeat(${state.pages.length}, max-content 40px) max-content`,
-            }}
-          >
-            {state.pages.map((page, index) => (
-              <Fragment key={page.id}>
-                <PageTab
-                  page={page}
-                  isActive={state.activePageId === page.id}
-                  isFocused={state.focusedPageId === page.id}
-                  isHovered={state.hoveredPageId === page.id}
-                  showThreeDots={state.activePageId === page.id}
-                  isEditing={state.editingPageId === page.id}
-                  isDragging={state.dragState.draggedPageId === page.id}
-                  onSelect={handleSelectPage}
-                  onContextMenu={handleContextMenu}
-                  onFocus={handleFocus}
-                  onHover={handleHover}
-                  onSave={handleSave}
-                  onCancel={handleCancelEdit}
-                  onStartEdit={handleStartEdit}
-                />
-
-                <Divider
-                  gapIndex={index}
-                  isHovered={state.hoverState.hoveredGap === index}
-                  onHoverChange={handleHoverGap}
-                  onAddPage={handleAddPageAtGap}
-                  showHoverButton={index < state.pages.length - 1}
-                />
-              </Fragment>
-            ))}
-
-            <AddPageButton onClick={handleAddPage} />
-          </div>
+          {renderContent()}
         </SortableContext>
 
         <DndDragOverlay>

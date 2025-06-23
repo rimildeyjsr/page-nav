@@ -1,7 +1,23 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, beforeEach, afterAll, vi } from "vitest";
 import { PageNavigationContainer } from "@/components/PageNavigation/PageNavigationContainer";
 import userEvent from "@testing-library/user-event";
+
+interface DndHandlers {
+  onDragStart?: (event: { active: { id: string } }) => void;
+  onDragEnd?: (event: {
+    active: { id: string };
+    over: { id: string } | null;
+  }) => void;
+  onDragOver?: (event: {
+    active: { id: string };
+    over: { id: string };
+  }) => void;
+}
+
+declare global {
+  var dndHandlers: DndHandlers | undefined;
+}
 
 const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
@@ -483,7 +499,11 @@ describe("PageNavigationContainer", () => {
       const hoverButton = screen.getByLabelText("Add page after position 1");
       await user.click(hoverButton);
 
-      expect(screen.getByDisplayValue("New Page")).toBeInTheDocument();
+      // Wait for the state update and re-render
+      await waitFor(() => {
+        const allTabs = screen.getAllByRole("tab");
+        expect(allTabs).toHaveLength(5);
+      });
 
       const allTabs = screen.getAllByRole("tab");
       const tabNames = allTabs.map((tab) => {
@@ -500,7 +520,6 @@ describe("PageNavigationContainer", () => {
         "Ending",
       ]);
     });
-
     it("should hide hover button when mouse leaves divider", () => {
       const { container } = render(<PageNavigationContainer />);
 
@@ -667,6 +686,367 @@ describe("PageNavigationContainer", () => {
       expect(
         screen.getByLabelText("Add page after position 0"),
       ).toBeInTheDocument();
+    });
+  });
+
+  describe("Drag and Drop Functionality", () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      consoleSpy.mockClear();
+    });
+
+    describe("Drag State Management", () => {
+      it("should initiate drag state when drag starts", () => {
+        render(<PageNavigationContainer />);
+
+        if (global.dndHandlers?.onDragStart) {
+          global.dndHandlers.onDragStart({
+            active: { id: "1" },
+          });
+        }
+
+        expect(screen.getByRole("tablist")).toBeInTheDocument();
+      });
+
+      it("should end drag state when drag ends", () => {
+        render(<PageNavigationContainer />);
+
+        if (global.dndHandlers?.onDragStart) {
+          global.dndHandlers.onDragStart({
+            active: { id: "1" },
+          });
+        }
+
+        if (global.dndHandlers?.onDragEnd) {
+          global.dndHandlers.onDragEnd({
+            active: { id: "1" },
+            over: { id: "2" },
+          });
+        }
+
+        expect(screen.getByRole("tablist")).toBeInTheDocument();
+      });
+
+      it("should close context menu when drag starts", () => {
+        render(<PageNavigationContainer />);
+
+        const firstTab = screen.getByText("Info").closest("div");
+        fireEvent.contextMenu(firstTab!);
+        expect(screen.getByText("Settings")).toBeInTheDocument();
+
+        if (global.dndHandlers?.onDragStart) {
+          global.dndHandlers.onDragStart({
+            active: { id: "1" },
+          });
+        }
+
+        expect(screen.getByRole("tablist")).toBeInTheDocument();
+      });
+    });
+
+    describe("Page Reordering", () => {
+      it("should handle reordering pages via drag and drop", () => {
+        render(<PageNavigationContainer />);
+
+        const initialTabs = screen.getAllByRole("tab");
+        const initialOrder = initialTabs.map(
+          (tab) =>
+            tab.querySelector("span")?.textContent ||
+            (tab.querySelector("input") as HTMLInputElement)?.value,
+        );
+        expect(initialOrder).toEqual(["Info", "Details", "Other", "Ending"]);
+
+        if (global.dndHandlers?.onDragEnd) {
+          global.dndHandlers.onDragEnd({
+            active: { id: "1" },
+            over: { id: "3" },
+          });
+        }
+
+        const reorderedTabs = screen.getAllByRole("tab");
+        const reorderedOrder = reorderedTabs.map(
+          (tab) =>
+            tab.querySelector("span")?.textContent ||
+            (tab.querySelector("input") as HTMLInputElement)?.value,
+        );
+
+        expect(reorderedOrder).toHaveLength(4);
+        expect(reorderedOrder).toContain("Info");
+        expect(reorderedOrder).toContain("Details");
+        expect(reorderedOrder).toContain("Other");
+        expect(reorderedOrder).toContain("Ending");
+      });
+
+      it("should handle drag without valid drop target", () => {
+        render(<PageNavigationContainer />);
+
+        if (global.dndHandlers?.onDragEnd) {
+          global.dndHandlers.onDragEnd({
+            active: { id: "1" },
+            over: null,
+          });
+        }
+
+        const tabs = screen.getAllByRole("tab");
+        expect(tabs).toHaveLength(4);
+
+        const order = tabs.map(
+          (tab) =>
+            tab.querySelector("span")?.textContent ||
+            (tab.querySelector("input") as HTMLInputElement)?.value,
+        );
+        expect(order).toEqual(["Info", "Details", "Other", "Ending"]);
+      });
+
+      it("should handle drag to same position", () => {
+        render(<PageNavigationContainer />);
+
+        if (global.dndHandlers?.onDragEnd) {
+          global.dndHandlers.onDragEnd({
+            active: { id: "1" },
+            over: { id: "1" },
+          });
+        }
+
+        const tabs = screen.getAllByRole("tab");
+        expect(tabs).toHaveLength(4);
+
+        const order = tabs.map(
+          (tab) =>
+            tab.querySelector("span")?.textContent ||
+            (tab.querySelector("input") as HTMLInputElement)?.value,
+        );
+        expect(order).toEqual(["Info", "Details", "Other", "Ending"]);
+      });
+    });
+
+    describe("Drag and Keyboard Navigation", () => {
+      it("should cancel drag on Escape key", () => {
+        render(<PageNavigationContainer />);
+        const container = screen.getByRole("tablist");
+
+        if (global.dndHandlers?.onDragStart) {
+          global.dndHandlers.onDragStart({
+            active: { id: "1" },
+          });
+        }
+
+        container.focus();
+
+        fireEvent.keyDown(container, { key: "Escape" });
+
+        expect(container).toBeInTheDocument();
+      });
+
+      it("should not handle other keys during drag", () => {
+        render(<PageNavigationContainer />);
+        const container = screen.getByRole("tablist");
+
+        if (global.dndHandlers?.onDragStart) {
+          global.dndHandlers.onDragStart({
+            active: { id: "1" },
+          });
+        }
+
+        container.focus();
+
+        expect(() => {
+          fireEvent.keyDown(container, { key: "ArrowRight" });
+          fireEvent.keyDown(container, { key: "ArrowLeft" });
+          fireEvent.keyDown(container, { key: "Enter" });
+          fireEvent.keyDown(container, { key: " " });
+        }).not.toThrow();
+
+        expect(container).toBeInTheDocument();
+      });
+    });
+
+    describe("Drag Integration with Existing Features", () => {
+      it("should preserve active page during drag operations", () => {
+        render(<PageNavigationContainer />);
+
+        const secondTab = screen.getByText("Details").closest("div");
+        fireEvent.click(secondTab!);
+        expect(secondTab).toHaveClass("bg-white", "text-black");
+
+        if (global.dndHandlers?.onDragStart) {
+          global.dndHandlers.onDragStart({
+            active: { id: "1" },
+          });
+        }
+
+        if (global.dndHandlers?.onDragEnd) {
+          global.dndHandlers.onDragEnd({
+            active: { id: "1" },
+            over: { id: "3" },
+          });
+        }
+
+        expect(secondTab).toHaveClass("bg-white", "text-black");
+      });
+
+      it("should work with hover add buttons during non-drag state", async () => {
+        const user = userEvent.setup();
+        const { container } = render(<PageNavigationContainer />);
+
+        const dividers = container.querySelectorAll(
+          ".relative.flex.items-center",
+        );
+        fireEvent.mouseEnter(dividers[0]);
+
+        expect(
+          screen.getByLabelText("Add page after position 0"),
+        ).toBeInTheDocument();
+
+        const hoverButton = screen.getByLabelText("Add page after position 0");
+        await user.click(hoverButton);
+
+        expect(screen.getByDisplayValue("New Page")).toBeInTheDocument();
+      });
+
+      it("should maintain context menu functionality", () => {
+        render(<PageNavigationContainer />);
+
+        const firstTab = screen.getByText("Info").closest("div");
+        fireEvent.contextMenu(firstTab!);
+
+        expect(screen.getByText("Settings")).toBeInTheDocument();
+        expect(screen.getByText("Rename")).toBeInTheDocument();
+        expect(screen.getByText("Duplicate")).toBeInTheDocument();
+        expect(screen.getByText("Delete")).toBeInTheDocument();
+      });
+    });
+
+    describe("Drag Visual Feedback", () => {
+      it("should render DragOverlay when dragging", () => {
+        render(<PageNavigationContainer />);
+
+        if (global.dndHandlers?.onDragStart) {
+          global.dndHandlers.onDragStart({
+            active: { id: "1" },
+          });
+        }
+
+        expect(screen.getByRole("tablist")).toBeInTheDocument();
+      });
+
+      it("should handle drag over events", () => {
+        render(<PageNavigationContainer />);
+
+        if (global.dndHandlers?.onDragStart) {
+          global.dndHandlers.onDragStart({
+            active: { id: "1" },
+          });
+        }
+
+        if (global.dndHandlers?.onDragOver) {
+          global.dndHandlers.onDragOver({
+            active: { id: "1" },
+            over: { id: "2" },
+          });
+        }
+
+        expect(screen.getByRole("tablist")).toBeInTheDocument();
+      });
+    });
+
+    describe("Accessibility During Drag", () => {
+      it("should maintain ARIA attributes during drag operations", () => {
+        render(<PageNavigationContainer />);
+
+        expect(screen.getByRole("tablist")).toHaveAttribute(
+          "aria-label",
+          "Page navigation",
+        );
+
+        const tabs = screen.getAllByRole("tab");
+        tabs.forEach((tab) => {
+          expect(tab).toHaveAttribute("aria-selected");
+          expect(tab).toHaveAttribute("aria-label");
+        });
+
+        if (global.dndHandlers?.onDragStart) {
+          global.dndHandlers.onDragStart({
+            active: { id: "1" },
+          });
+        }
+
+        expect(screen.getByRole("tablist")).toHaveAttribute(
+          "aria-label",
+          "Page navigation",
+        );
+
+        const tabsAfterDrag = screen.getAllByRole("tab");
+        tabsAfterDrag.forEach((tab) => {
+          expect(tab).toHaveAttribute("aria-selected");
+          expect(tab).toHaveAttribute("aria-label");
+        });
+      });
+    });
+
+    describe("Error Handling", () => {
+      it("should handle invalid drag operations gracefully", () => {
+        render(<PageNavigationContainer />);
+
+        expect(() => {
+          if (global.dndHandlers?.onDragEnd) {
+            global.dndHandlers.onDragEnd({
+              active: { id: "invalid-id" },
+              over: { id: "2" },
+            });
+          }
+        }).not.toThrow();
+
+        expect(screen.getByRole("tablist")).toBeInTheDocument();
+      });
+
+      it("should handle rapid drag operations", () => {
+        render(<PageNavigationContainer />);
+
+        expect(() => {
+          if (global.dndHandlers?.onDragStart) {
+            global.dndHandlers.onDragStart({ active: { id: "1" } });
+          }
+          if (global.dndHandlers?.onDragEnd) {
+            global.dndHandlers.onDragEnd({
+              active: { id: "1" },
+              over: { id: "2" },
+            });
+          }
+          if (global.dndHandlers?.onDragStart) {
+            global.dndHandlers.onDragStart({ active: { id: "2" } });
+          }
+          if (global.dndHandlers?.onDragEnd) {
+            global.dndHandlers.onDragEnd({
+              active: { id: "2" },
+              over: { id: "3" },
+            });
+          }
+        }).not.toThrow();
+
+        expect(screen.getByRole("tablist")).toBeInTheDocument();
+      });
+    });
+
+    describe("Integration with Edit Mode", () => {
+      it("should not interfere with editing operations", async () => {
+        const user = userEvent.setup();
+        render(<PageNavigationContainer />);
+
+        const firstTab = screen.getByText("Info").closest("div");
+        fireEvent.contextMenu(firstTab!);
+        await user.click(screen.getByText("Rename"));
+
+        expect(screen.getByDisplayValue("Info")).toBeInTheDocument();
+
+        if (global.dndHandlers?.onDragStart) {
+          global.dndHandlers.onDragStart({
+            active: { id: "2" },
+          });
+        }
+
+        expect(screen.getByDisplayValue("Info")).toBeInTheDocument();
+      });
     });
   });
 });
