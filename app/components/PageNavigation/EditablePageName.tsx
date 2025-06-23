@@ -6,12 +6,14 @@ interface EditablePageNameProps {
   initialName: string;
   onSaveAction: (name: string) => void;
   onCancelAction: () => void;
+  className?: string;
 }
 
 export const EditablePageName = ({
   initialName,
   onSaveAction,
   onCancelAction,
+  className = "",
 }: EditablePageNameProps) => {
   const [value, setValue] = useState(initialName);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -56,7 +58,7 @@ export const EditablePageName = ({
       onChange={(e) => setValue(e.target.value)}
       onKeyDown={handleKeyDown}
       onBlur={handleBlur}
-      className="text-sm bg-transparent border-none outline-none focus:ring-1 focus:ring-blue-500 rounded px-1"
+      className={`${className}text-sm bg-transparent border-none outline-none focus:ring-1 focus:ring-blue-500 rounded px-1`}
       style={{ minWidth: "60px", width: `${Math.max(value.length * 8, 60)}px` }}
     />
   );

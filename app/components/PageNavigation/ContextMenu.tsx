@@ -24,7 +24,6 @@ export const ContextMenu = ({
 }: ContextMenuProps) => {
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Close on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -39,7 +38,6 @@ export const ContextMenu = ({
     }
   }, [isOpen, onCloseAction]);
 
-  // Close on Escape key
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -73,42 +71,52 @@ export const ContextMenu = ({
   return (
     <div
       ref={menuRef}
-      className="fixed z-50 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-48"
+      className="fixed z-50 bg-white border border-[#e1e1e1] rounded-lg shadow-lg overflow-hidden min-w-48"
       style={{
         left: position.x,
         top: position.y - 8,
         transform: "translateY(-100%)",
       }}
     >
-      <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
-        <h3 className="text-sm font-medium text-black">Settings</h3>
+      <div className="px-[12px] py-[12px] bg-[#fafbfc] rounded-t-lg">
+        <h3 className="text-[16px] font-medium text-[#1a1a1a]">Settings</h3>
       </div>
 
-      <button
-        onClick={handleRename}
-        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-black hover:bg-gray-50 transition-colors"
-      >
-        <RenameIcon className="w-4 h-4 text-gray-600" />
-        Rename
-      </button>
+      <div className="px-[12px] pt-[14px] pb-[14px]">
+        <button
+          onClick={handleRename}
+          className="w-full flex items-center px-0 py-0 text-[14px] text-[#1a1a1a] hover:bg-gray-50 transition-colors"
+          style={{ gap: "6px" }}
+        >
+          <RenameIcon className="w-[16px] h-[16px] text-gray-600" />
+          Rename
+        </button>
 
-      <button
-        onClick={handleDuplicate}
-        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-black hover:bg-gray-50 transition-colors"
-      >
-        <DuplicateIcon className="w-4 h-4 text-gray-600" />
-        Duplicate
-      </button>
+        <div style={{ height: "14px" }} />
 
-      <div className="border-t border-gray-200 my-1" />
+        <button
+          onClick={handleDuplicate}
+          className="w-full flex items-center px-0 py-0 text-[14px] text-[#1a1a1a] hover:bg-gray-50 transition-colors"
+          style={{ gap: "6px" }}
+        >
+          <DuplicateIcon className="w-[16px] h-[16px] text-gray-600" />
+          Duplicate
+        </button>
 
-      <button
-        onClick={handleDelete}
-        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-      >
-        <DeleteIcon className="w-4 h-4 text-red-600" />
-        Delete
-      </button>
+        <div
+          className="border-t border-[#e1e1e1]"
+          style={{ margin: "14px 0" }}
+        />
+
+        <button
+          onClick={handleDelete}
+          className="w-full flex items-center px-0 py-0 text-[14px] text-[#EF494F] hover:bg-red-50 transition-colors"
+          style={{ gap: "6px" }}
+        >
+          <DeleteIcon className="w-[16px] h-[16px] text-[#EF494F]" />
+          Delete
+        </button>
+      </div>
     </div>
   );
 };

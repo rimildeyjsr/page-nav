@@ -134,6 +134,16 @@ export const PageTab = ({
     }
   };
 
+  const getTabStyles = () => {
+    if (isActive) {
+      return "bg-white text-[#1A1A1A] border-[#e1e1e1]";
+    }
+    if (isHovered) {
+      return "bg-[#9DA4B2]/35 text-[#677289] border-[#9DA4B2]/35";
+    }
+    return "bg-[#9DA4B2]/15 text-[#677289] border-[#9DA4B2]/15";
+  };
+
   const combinedAttributes = isEditing
     ? {
         role: "tab",
@@ -156,18 +166,12 @@ export const PageTab = ({
       ref={combinedRef}
       style={style}
       className={`
-        flex items-center gap-2 px-3 py-1.5 rounded-md cursor-pointer border border-gray-200
+        flex items-center w-fit h-[32px] px-[10px] py-[4px] rounded-md cursor-pointer border
         transition-all duration-200 ease-in-out
-        ${
-          isActive
-            ? "bg-white text-black"
-            : isHovered
-              ? "bg-gray-400 text-gray-700"
-              : "bg-gray-100 text-gray-600"
-        }
-        ${isFocused ? "ring-2 ring-blue-500 ring-opacity-50" : ""}
+        ${getTabStyles()}
+        ${isFocused ? "ring-2 ring-[#2F72E2] ring-opacity-50" : ""}
         ${isSortableDragging ? "shadow-lg rotate-3 scale-105" : ""}
-        focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50
+        focus:outline-none focus:ring-2 focus:ring-[#2F72E2] focus:ring-opacity-50
       `}
       {...combinedAttributes}
       {...combinedListeners}
@@ -180,29 +184,33 @@ export const PageTab = ({
       onMouseEnter={() => onHover(page.id)}
       onMouseLeave={() => onHover(null)}
     >
-      <DocumentIcon isActive={isActive} className="w-4 h-4 flex-shrink-0" />
+      <DocumentIcon
+        isActive={isActive}
+        className={`flex-shrink-0 w-[19px] h-[19px] ${isActive ? "text-[#F59D0E]" : ""}`}
+      />
 
       {isEditing ? (
         <EditablePageName
           initialName={page.name}
           onSaveAction={(name) => onSave(page.id, name)}
           onCancelAction={onCancel}
+          className="ml-[6px]"
         />
       ) : (
-        <span className="text-sm font-medium whitespace-nowrap select-none">
+        <span className="ml-[6px] text-sm font-medium whitespace-nowrap select-none">
           {page.name}
         </span>
       )}
 
       {showThreeDots && !isEditing && (
         <button
-          className="ml-1 p-0.5 hover:bg-gray-200 rounded transition-colors duration-150 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="ml-[8px] w-[16px] h-[16px] flex items-center justify-center hover:bg-gray-200 hover:bg-opacity-20 rounded transition-colors duration-150 focus:outline-none focus:ring-1 focus:ring-[#2F72E2]"
           onClick={handleThreeDotsClick}
           onKeyDown={handleThreeDotsKeyDown}
           aria-label={`More options for ${page.name}`}
           tabIndex={-1}
         >
-          <ThreeDotsIcon className="w-3 h-3" />
+          <ThreeDotsIcon className="w-[16px] h-[16px] flex-shrink-0" />
         </button>
       )}
     </div>

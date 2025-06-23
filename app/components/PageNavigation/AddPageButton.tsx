@@ -6,7 +6,7 @@ export const AddPageButton = ({ onClick }: AddPageButtonProps) => {
   return (
     <button
       onClick={onClick}
-      className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-white border border-gray-200 text-black hover:bg-white transition-colors duration-200 text-sm font-medium"
+      className="flex cursor-pointer items-center gap-2 px-3 py-1.5 rounded-md bg-white border border-gray-200 text-black hover:bg-white transition-colors duration-200 text-sm font-medium"
     >
       <svg
         className="w-4 h-4"
