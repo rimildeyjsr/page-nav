@@ -1,12 +1,9 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { PageTab } from "@/components/PageNavigation/PageTab";
-import { Page } from "@/components/PageNavigation/types";
+import { mockPages } from "@/components/PageNavigation/mockData";
 
-const mockPage: Page = {
-  id: "1",
-  name: "Test Page",
-};
+const mockPage = mockPages[0];
 
 const mockProps = {
   page: mockPage,
@@ -21,6 +18,7 @@ const mockProps = {
   onHover: vi.fn(),
   onSave: vi.fn(),
   onCancel: vi.fn(),
+  onStartEdit: vi.fn(),
 };
 
 Object.defineProperty(Element.prototype, "getBoundingClientRect", {
@@ -43,19 +41,19 @@ describe("PageTab", () => {
   describe("Context Menu Interactions", () => {
     it("should call onContextMenu on right-click", () => {
       render(<PageTab {...mockProps} />);
-      const tab = screen.getByText("Test Page").closest("div");
+      const tab = screen.getByText("Info").closest("div");
 
       fireEvent.contextMenu(tab!);
 
       expect(mockProps.onContextMenu).toHaveBeenCalledWith("1", {
         x: 50,
-        y: 84, // top - 16
+        y: 84,
       });
     });
 
     it("should call onContextMenu on right-click (button 2)", () => {
       render(<PageTab {...mockProps} />);
-      const tab = screen.getByText("Test Page").closest("div");
+      const tab = screen.getByText("Info").closest("div");
 
       fireEvent.mouseDown(tab!, { button: 2 });
 
@@ -67,7 +65,7 @@ describe("PageTab", () => {
 
     it("should call onContextMenu on actual right-click (button 2)", () => {
       render(<PageTab {...mockProps} />);
-      const tab = screen.getByText("Test Page").closest("div");
+      const tab = screen.getByText("Info").closest("div");
 
       fireEvent.mouseDown(tab!, { button: 2 });
 
@@ -79,7 +77,7 @@ describe("PageTab", () => {
 
     it("should not call onContextMenu on regular left-click", () => {
       render(<PageTab {...mockProps} />);
-      const tab = screen.getByText("Test Page").closest("div");
+      const tab = screen.getByText("Info").closest("div");
 
       fireEvent.mouseDown(tab!, { button: 0, ctrlKey: false });
 
@@ -88,19 +86,21 @@ describe("PageTab", () => {
 
     it("should call onContextMenu when three-dots button is clicked", () => {
       render(<PageTab {...mockProps} showThreeDots={true} />);
-      const threeDotsButton = screen.getByRole("button");
+
+      const threeDotsButton = screen.getByLabelText("More options for Info");
 
       fireEvent.click(threeDotsButton);
 
       expect(mockProps.onContextMenu).toHaveBeenCalledWith("1", {
         x: 50,
-        y: 84, // top - 16
+        y: 84,
       });
     });
 
     it("should prevent event propagation when three-dots is clicked", () => {
       render(<PageTab {...mockProps} showThreeDots={true} />);
-      const threeDotsButton = screen.getByRole("button");
+
+      const threeDotsButton = screen.getByLabelText("More options for Info");
 
       fireEvent.click(threeDotsButton);
 
@@ -112,24 +112,33 @@ describe("PageTab", () => {
   describe("Three Dots Button", () => {
     it("should show three-dots button when showThreeDots is true and not editing", () => {
       render(<PageTab {...mockProps} showThreeDots={true} isEditing={false} />);
-      expect(screen.getByRole("button")).toBeInTheDocument();
+
+      expect(
+        screen.getByLabelText("More options for Info"),
+      ).toBeInTheDocument();
     });
 
     it("should hide three-dots button when showThreeDots is false", () => {
       render(<PageTab {...mockProps} showThreeDots={false} />);
-      expect(screen.queryByRole("button")).not.toBeInTheDocument();
+
+      expect(
+        screen.queryByLabelText("More options for Info"),
+      ).not.toBeInTheDocument();
     });
 
     it("should hide three-dots button when editing", () => {
       render(<PageTab {...mockProps} showThreeDots={true} isEditing={true} />);
-      expect(screen.queryByRole("button")).not.toBeInTheDocument();
+
+      expect(
+        screen.queryByLabelText("More options for Info"),
+      ).not.toBeInTheDocument();
     });
   });
 
   describe("Existing Functionality", () => {
     it("should call onSelect when clicked and not editing", () => {
       render(<PageTab {...mockProps} />);
-      const tab = screen.getByText("Test Page").closest("div");
+      const tab = screen.getByText("Info").closest("div");
 
       fireEvent.click(tab!);
 
@@ -139,7 +148,7 @@ describe("PageTab", () => {
     it("should not call onSelect when editing", () => {
       render(<PageTab {...mockProps} isEditing={true} />);
 
-      const tab = screen.getByDisplayValue("Test Page").closest("div");
+      const tab = screen.getByDisplayValue("Info").closest("div");
 
       fireEvent.click(tab!);
 
@@ -148,21 +157,21 @@ describe("PageTab", () => {
 
     it("should apply active styles when isActive is true", () => {
       render(<PageTab {...mockProps} isActive={true} />);
-      const tab = screen.getByText("Test Page").closest("div");
+      const tab = screen.getByText("Info").closest("div");
 
       expect(tab).toHaveClass("bg-white", "text-black");
     });
 
     it("should apply focused styles when isFocused is true", () => {
       render(<PageTab {...mockProps} isFocused={true} />);
-      const tab = screen.getByText("Test Page").closest("div");
+      const tab = screen.getByText("Info").closest("div");
 
       expect(tab).toHaveClass("ring-2", "ring-blue-500", "ring-opacity-50");
     });
 
     it("should call onFocus and onHover handlers", () => {
       render(<PageTab {...mockProps} />);
-      const tab = screen.getByText("Test Page").closest("div");
+      const tab = screen.getByText("Info").closest("div");
 
       fireEvent.focus(tab!);
       expect(mockProps.onFocus).toHaveBeenCalledWith("1");
@@ -180,7 +189,43 @@ describe("PageTab", () => {
     it("should render EditablePageName when editing", () => {
       render(<PageTab {...mockProps} isEditing={true} />);
 
-      expect(screen.getByDisplayValue("Test Page")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("Info")).toBeInTheDocument();
+    });
+
+    it("should have tab role and proper accessibility attributes", () => {
+      render(<PageTab {...mockProps} />);
+
+      const tab = screen.getByLabelText("Page: Info");
+      expect(tab).toHaveAttribute("aria-selected", "false");
+      expect(tab).toHaveAttribute("aria-label", "Page: Info");
+    });
+
+    it("should handle keyboard navigation for editing", () => {
+      render(<PageTab {...mockProps} isFocused={true} />);
+      const tab = screen.getByLabelText("Page: Info");
+
+      fireEvent.keyDown(tab, { key: "F2" });
+      expect(mockProps.onStartEdit).toHaveBeenCalledWith("1");
+
+      fireEvent.keyDown(tab, { key: "Enter", ctrlKey: true });
+      expect(mockProps.onStartEdit).toHaveBeenCalledWith("1");
+    });
+  });
+
+  describe("Drag and Drop Integration", () => {
+    it("should not have drag listeners when editing", () => {
+      render(<PageTab {...mockProps} isEditing={true} />);
+
+      expect(screen.getByDisplayValue("Info")).toBeInTheDocument();
+    });
+
+    it("should have sortable attributes when not editing", () => {
+      render(<PageTab {...mockProps} isEditing={false} />);
+      const tab = screen.getByLabelText("Page: Info");
+
+      expect(tab).toHaveAttribute("aria-describedby");
+      expect(tab).toHaveAttribute("aria-disabled", "false");
+      expect(tab).toHaveAttribute("aria-roledescription", "sortable");
     });
   });
 });

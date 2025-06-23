@@ -40,7 +40,6 @@ export const PageTab = ({
 }: PageTabProps) => {
   const tabRef = useRef<HTMLDivElement>(null);
 
-  // Set up sortable functionality
   const {
     attributes,
     listeners,
@@ -50,7 +49,7 @@ export const PageTab = ({
     isDragging: isSortableDragging,
   } = useSortable({
     id: page.id,
-    disabled: isEditing, // Disable dragging while editing
+    disabled: isEditing,
   });
 
   const style = {
@@ -128,7 +127,6 @@ export const PageTab = ({
     }
   };
 
-  // Combine refs for both tab functionality and sortable
   const combinedRef = (node: HTMLDivElement | null) => {
     setNodeRef(node);
     if (node) {
@@ -154,10 +152,10 @@ export const PageTab = ({
         ${isSortableDragging ? "shadow-lg rotate-3 scale-105" : ""}
         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50
       `}
-      // role="tab"
+      role="tab"
       aria-selected={isActive}
       aria-label={`Page: ${page.name}`}
-      // tabIndex={isFocused ? 0 : -1}
+      tabIndex={isFocused ? 0 : -1}
       onClick={handleClick}
       onMouseDown={handleRightClick}
       onContextMenu={handleContextMenu}
@@ -166,8 +164,7 @@ export const PageTab = ({
       onBlur={() => onFocus(null)}
       onMouseEnter={() => onHover(page.id)}
       onMouseLeave={() => onHover(null)}
-      {...attributes}
-      {...(!isEditing ? listeners : {})} // Only add drag listeners when not editing
+      {...(isEditing ? {} : { ...attributes, ...listeners })} // Only add sortable props when not editing
     >
       <DocumentIcon isActive={isActive} className="w-4 h-4 flex-shrink-0" />
 
