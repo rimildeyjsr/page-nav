@@ -160,7 +160,7 @@ describe("PageNavigationContainer", () => {
       const secondTab = screen.getByText("Details").closest("div");
       fireEvent.click(secondTab!);
 
-      expect(secondTab).toHaveClass("bg-white", "text-black");
+      expect(secondTab).toHaveClass("bg-white", "text-[#1A1A1A]");
     });
 
     it("should add new page when clicking add page button", () => {
@@ -637,7 +637,7 @@ describe("PageNavigationContainer", () => {
       const detailsTab = screen.getByText("Details").closest("div");
       await user.click(detailsTab!);
 
-      expect(detailsTab).toHaveClass("bg-white", "text-black");
+      expect(detailsTab).toHaveClass("bg-white", "text-[#1A1A1A]");
 
       const dividers = container.querySelectorAll(
         ".relative.flex.items-center",
@@ -867,7 +867,7 @@ describe("PageNavigationContainer", () => {
 
         const secondTab = screen.getByText("Details").closest("div");
         fireEvent.click(secondTab!);
-        expect(secondTab).toHaveClass("bg-white", "text-black");
+        expect(secondTab).toHaveClass("bg-white", "text-[#1A1A1A]");
 
         if (global.dndHandlers?.onDragStart) {
           global.dndHandlers.onDragStart({
@@ -882,7 +882,7 @@ describe("PageNavigationContainer", () => {
           });
         }
 
-        expect(secondTab).toHaveClass("bg-white", "text-black");
+        expect(secondTab).toHaveClass("bg-white", "text-[#1A1A1A]");
       });
 
       it("should work with hover add buttons during non-drag state", async () => {

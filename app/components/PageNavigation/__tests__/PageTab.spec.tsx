@@ -159,14 +159,14 @@ describe("PageTab", () => {
       render(<PageTab {...mockProps} isActive={true} />);
       const tab = screen.getByText("Info").closest("div");
 
-      expect(tab).toHaveClass("bg-white", "text-black");
+      expect(tab).toHaveClass("bg-white", "text-[#1A1A1A]");
     });
 
     it("should apply focused styles when isFocused is true", () => {
       render(<PageTab {...mockProps} isFocused={true} />);
       const tab = screen.getByText("Info").closest("div");
 
-      expect(tab).toHaveClass("ring-2", "ring-blue-500", "ring-opacity-50");
+      expect(tab).toHaveClass("ring-2", "ring-[#2F72E2]", "ring-opacity-50");
     });
 
     it("should call onFocus and onHover handlers", () => {

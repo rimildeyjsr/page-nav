@@ -33,7 +33,7 @@ describe("HoverAddButton", () => {
       render(<HoverAddButton {...defaultProps} />);
 
       const button = screen.getByRole("button");
-      expect(button).toHaveClass("w-4", "h-4");
+      expect(button).toHaveClass("w-[16px]", "h-[16px]");
     });
 
     it("has correct styling (white background, gray text)", () => {
@@ -43,10 +43,9 @@ describe("HoverAddButton", () => {
       expect(button).toHaveClass(
         "bg-white",
         "hover:bg-gray-50",
-        "text-gray-600",
-        "hover:text-gray-800",
+        "text-black",
         "border",
-        "border-gray-200",
+        "border-[#e1e1e1]",
         "rounded-full",
       );
     });

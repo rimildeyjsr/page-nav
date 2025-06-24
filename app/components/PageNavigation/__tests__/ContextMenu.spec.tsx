@@ -52,7 +52,7 @@ describe("ContextMenu", () => {
     it("should apply correct styling to delete button", () => {
       render(<ContextMenu {...mockProps} />);
       const deleteButton = screen.getByText("Delete").closest("button");
-      expect(deleteButton).toHaveClass("text-red-600", "hover:bg-red-50");
+      expect(deleteButton).toHaveClass("text-[#EF494F]", "hover:bg-red-50");
     });
   });
 
