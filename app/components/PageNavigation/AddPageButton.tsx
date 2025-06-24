@@ -1,8 +1,10 @@
+import { memo } from "react";
+
 interface AddPageButtonProps {
   onClick: () => void;
 }
 
-export const AddPageButton = ({ onClick }: AddPageButtonProps) => {
+const AddPageButtonComponent = ({ onClick }: AddPageButtonProps) => {
   return (
     <button
       onClick={onClick}
@@ -25,3 +27,5 @@ export const AddPageButton = ({ onClick }: AddPageButtonProps) => {
     </button>
   );
 };
+
+export const AddPageButton = memo(AddPageButtonComponent);

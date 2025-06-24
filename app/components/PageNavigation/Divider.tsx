@@ -1,4 +1,5 @@
 import { HoverAddButton } from "./HoverAddButton";
+import { memo } from "react";
 
 interface DividerProps {
   gapIndex: number;
@@ -8,7 +9,7 @@ interface DividerProps {
   showHoverButton?: boolean;
 }
 
-export const Divider = ({
+const DividerComponent = ({
   gapIndex,
   isHovered,
   onHoverChange,
@@ -51,3 +52,5 @@ export const Divider = ({
     </div>
   );
 };
+
+export const Divider = memo(DividerComponent);

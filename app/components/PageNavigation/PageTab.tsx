@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Page } from "@/components/PageNavigation/types";
 import { DocumentIcon } from "@/components/PageNavigation/icons/DocumentIcon";
 import { ThreeDotsIcon } from "@/components/PageNavigation/icons/ThreeDots";
@@ -23,7 +24,7 @@ export interface PageTabProps {
   onStartEdit: (pageId: string) => void;
 }
 
-export const PageTab = ({
+const PageTabComponent = ({
   page,
   isActive,
   isFocused,
@@ -66,7 +67,6 @@ export const PageTab = ({
 
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
-
     const rect = e.currentTarget.getBoundingClientRect();
     onContextMenu(page.id, { x: rect.left, y: rect.top - 16 });
   };
@@ -74,7 +74,6 @@ export const PageTab = ({
   const handleRightClick = (e: React.MouseEvent) => {
     if (e.button === 2) {
       e.preventDefault();
-
       const rect = e.currentTarget.getBoundingClientRect();
       onContextMenu(page.id, { x: rect.left, y: rect.top });
     }
@@ -90,7 +89,6 @@ export const PageTab = ({
       onStartEdit(page.id);
       return;
     }
-
     if (
       e.key === "ContextMenu" ||
       (e.key === "F10" && e.shiftKey) ||
@@ -166,13 +164,13 @@ export const PageTab = ({
       ref={combinedRef}
       style={style}
       className={`
-        flex items-center w-fit h-[32px] px-[10px] py-[4px] rounded-md cursor-pointer border
-        transition-all duration-200 ease-in-out
-        ${getTabStyles()}
-        ${isFocused ? "ring-2 ring-[#2F72E2] ring-opacity-50" : ""}
-        ${isSortableDragging ? "shadow-lg rotate-3 scale-105" : ""}
-        focus:outline-none focus:ring-2 focus:ring-[#2F72E2] focus:ring-opacity-50
-      `}
+      flex items-center w-fit h-[32px] px-[10px] py-[4px] rounded-md cursor-pointer border
+      transition-all duration-200 ease-in-out
+      ${getTabStyles()}
+      ${isFocused ? "ring-2 ring-[#2F72E2] ring-opacity-50" : ""}
+      ${isSortableDragging ? "shadow-lg rotate-3 scale-105" : ""}
+      focus:outline-none focus:ring-2 focus:ring-[#2F72E2] focus:ring-opacity-50
+    `}
       {...combinedAttributes}
       {...combinedListeners}
       onClick={handleClick}
@@ -216,3 +214,5 @@ export const PageTab = ({
     </div>
   );
 };
+
+export const PageTab = memo(PageTabComponent);

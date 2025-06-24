@@ -55,6 +55,18 @@ export const PageNavigationContainer = () => {
     setIsClient(true);
   }, []);
 
+  const handleSelectPage = useCallback((pageId: string) => {
+    dispatch({ type: PAGE_NAVIGATION_ACTIONS.SELECT_PAGE, pageId });
+  }, []);
+
+  const handleCancelEdit = useCallback(() => {
+    dispatch({ type: PAGE_NAVIGATION_ACTIONS.STOP_EDITING });
+  }, []);
+
+  const handleCloseContextMenu = useCallback(() => {
+    dispatch({ type: PAGE_NAVIGATION_ACTIONS.CLOSE_CONTEXT_MENU });
+  }, []);
+
   const handleArrowNavigation = useCallback(
     (direction: "left" | "right") => {
       const currentIndex = state.focusedPageId
@@ -161,93 +173,91 @@ export const PageNavigationContainer = () => {
     state.contextMenu.isOpen,
     state.dragState.isDragging,
     handleArrowNavigation,
+    handleSelectPage,
+    handleCancelEdit,
+    handleCloseContextMenu,
   ]);
 
-  const handleDragStart = (event: DragStartEvent) => {
-    const { active } = event;
-    dispatch({
-      type: PAGE_NAVIGATION_ACTIONS.START_DRAG,
-      pageId: active.id as string,
-    });
+  const handleDragStart = useCallback(
+    (event: DragStartEvent) => {
+      const { active } = event;
+      dispatch({
+        type: PAGE_NAVIGATION_ACTIONS.START_DRAG,
+        pageId: active.id as string,
+      });
 
-    if (state.contextMenu.isOpen) {
-      handleCloseContextMenu();
-    }
-  };
-
-  const handleDragOver = (event: DragOverEvent) => {
-    const { active, over } = event;
-
-    if (over && active.id !== over.id) {
-    }
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    dispatch({ type: PAGE_NAVIGATION_ACTIONS.END_DRAG });
-
-    if (over && active.id !== over.id) {
-      const fromIndex = state.pages.findIndex((page) => page.id === active.id);
-      const toIndex = state.pages.findIndex((page) => page.id === over.id);
-
-      if (fromIndex !== -1 && toIndex !== -1) {
-        dispatch({
-          type: PAGE_NAVIGATION_ACTIONS.REORDER_PAGES,
-          fromIndex,
-          toIndex,
-        });
+      if (state.contextMenu.isOpen) {
+        handleCloseContextMenu();
       }
+    },
+    [state.contextMenu.isOpen, handleCloseContextMenu],
+  );
+
+  const handleDragOver = useCallback((event: DragOverEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
     }
-  };
+  }, []);
 
-  const handleSelectPage = (pageId: string) => {
-    dispatch({ type: PAGE_NAVIGATION_ACTIONS.SELECT_PAGE, pageId });
-  };
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
 
-  const handleContextMenu = (
-    pageId: string,
-    position: { x: number; y: number },
-  ) => {
-    dispatch({
-      type: PAGE_NAVIGATION_ACTIONS.OPEN_CONTEXT_MENU,
-      pageId,
-      position,
-    });
-  };
+      dispatch({ type: PAGE_NAVIGATION_ACTIONS.END_DRAG });
 
-  const handleFocus = (pageId: string | null) => {
+      if (over && active.id !== over.id) {
+        const fromIndex = state.pages.findIndex(
+          (page) => page.id === active.id,
+        );
+        const toIndex = state.pages.findIndex((page) => page.id === over.id);
+
+        if (fromIndex !== -1 && toIndex !== -1) {
+          dispatch({
+            type: PAGE_NAVIGATION_ACTIONS.REORDER_PAGES,
+            fromIndex,
+            toIndex,
+          });
+        }
+      }
+    },
+    [state.pages],
+  );
+
+  const handleContextMenu = useCallback(
+    (pageId: string, position: { x: number; y: number }) => {
+      dispatch({
+        type: PAGE_NAVIGATION_ACTIONS.OPEN_CONTEXT_MENU,
+        pageId,
+        position,
+      });
+    },
+    [],
+  );
+
+  const handleFocus = useCallback((pageId: string | null) => {
     dispatch({ type: PAGE_NAVIGATION_ACTIONS.SET_FOCUSED_PAGE, pageId });
-  };
+  }, []);
 
-  const handleHover = (pageId: string | null) => {
+  const handleHover = useCallback((pageId: string | null) => {
     dispatch({ type: PAGE_NAVIGATION_ACTIONS.SET_HOVERED_PAGE, pageId });
-  };
+  }, []);
 
-  const handleAddPage = () => {
+  const handleAddPage = useCallback(() => {
     dispatch({
       type: PAGE_NAVIGATION_ACTIONS.ADD_PAGE,
       afterIndex: state.pages.length - 1,
     });
-  };
+  }, [state.pages.length]);
 
-  const handleSave = (pageId: string, name: string) => {
+  const handleSave = useCallback((pageId: string, name: string) => {
     dispatch({
       type: PAGE_NAVIGATION_ACTIONS.RENAME_PAGE,
       pageId,
       name,
     });
-  };
+  }, []);
 
-  const handleCancelEdit = () => {
-    dispatch({ type: PAGE_NAVIGATION_ACTIONS.STOP_EDITING });
-  };
-
-  const handleCloseContextMenu = () => {
-    dispatch({ type: PAGE_NAVIGATION_ACTIONS.CLOSE_CONTEXT_MENU });
-  };
-
-  const handleRename = () => {
+  const handleRename = useCallback(() => {
     if (state.contextMenu.pageId) {
       dispatch({
         type: PAGE_NAVIGATION_ACTIONS.START_EDITING,
@@ -256,9 +266,9 @@ export const PageNavigationContainer = () => {
       handleCloseContextMenu();
     }
     console.log("Rename clicked for page:", state.contextMenu.pageId);
-  };
+  }, [state.contextMenu.pageId, handleCloseContextMenu]);
 
-  const handleDuplicate = () => {
+  const handleDuplicate = useCallback(() => {
     if (state.contextMenu.pageId) {
       const pageIndex = state.pages.findIndex(
         (p) => p.id === state.contextMenu.pageId,
@@ -274,27 +284,27 @@ export const PageNavigationContainer = () => {
       handleCloseContextMenu();
     }
     console.log("Duplicate clicked for page:", state.contextMenu.pageId);
-  };
+  }, [state.contextMenu.pageId, state.pages, handleCloseContextMenu]);
 
-  const handleDelete = () => {
+  const handleDelete = useCallback(() => {
     handleCloseContextMenu();
     console.log("Delete clicked for page:", state.contextMenu.pageId);
-  };
+  }, [state.contextMenu.pageId, handleCloseContextMenu]);
 
-  const handleStartEdit = (pageId: string) => {
+  const handleStartEdit = useCallback((pageId: string) => {
     dispatch({ type: PAGE_NAVIGATION_ACTIONS.START_EDITING, pageId });
-  };
+  }, []);
 
-  const handleHoverGap = (gapIndex: number | null) => {
+  const handleHoverGap = useCallback((gapIndex: number | null) => {
     dispatch({ type: PAGE_NAVIGATION_ACTIONS.SET_HOVER_GAP, gapIndex });
-  };
+  }, []);
 
-  const handleAddPageAtGap = (afterIndex: number) => {
+  const handleAddPageAtGap = useCallback((afterIndex: number) => {
     dispatch({
       type: PAGE_NAVIGATION_ACTIONS.ADD_PAGE,
       afterIndex,
     });
-  };
+  }, []);
 
   const draggedPage = state.dragState.draggedPageId
     ? state.pages.find((p) => p.id === state.dragState.draggedPageId)
