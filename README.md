@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Page Navigation Component - Fillout Take-Home Assignment
 
-## Getting Started
+## 🚀 Getting Started
 
-First, run the development server:
+To run this project locally, follow these steps:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+1. Clone the repository:
+
+```
+git clone git@github.com:rimildeyjsr/page-nav.git
+cd page-nav
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+npm install
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. Run the development server:
 
-## Learn More
+```
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+4. Open your browser:
+Navigate to http://localhost:3000 to see the component in action.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🎯 Features 
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Drag & Drop Reordering : Reorder pages by dragging and dropping
+2. Tab Navigation: Click to switch between pages
+2. Context Menu Actions (does not work as of now) : Rename, duplicate, delete
+3. Keyboard Navigation: Arrow keys, tab support
+4. Responsive Design: Works on mobile and desktop
+   - Arrow Left/Right - Navigate between pages (Lines 88-96)
+   - Enter - Activate focused page
+   - Cmd/Ctrl + Enter - Start editing page name
+   - Spacebar - Activate focused page
+   - F2 - Start editing page name
+   - Escape - Cancel editing/close menus/stop dragging
+   - Context Menu Key - Open context menu
+   - Shift + F10 - Open context menu
+   - Ctrl + Space - Open context menu
+   - Enter/Escape in Edit Mode - Save/cancel editing
+4. Dynamic Addition: Add pages with hover buttons or main add button
+5. Inline editing : Ability to edit page names
 
-## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🏗️ Architectural Overview
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+High-Level Design
+```
+PageNavigationContainer (Smart Component)
+├── State Management (useReducer + Actions)
+├── Event Handling (Keyboard, Mouse, Drag & Drop)
+├── Performance Layer (Memoization, Callbacks)
+└── Presentation Layer
+├── PageTab (Draggable, Editable)
+├── Divider (Hover Add Buttons)
+├── AddPageButton (Primary Action)
+├── ContextMenu (Right-click Actions)
+└── DragOverlay (Visual Feedback)
+
+```
+## 🛠️ Technology Stack
+### Core Technologies
+
+React, TypeScript, Next.js 15, Tailwind CSS
+
+### Drag & Drop
+Used the `@dnd-kit` library for drag-and-drop functionality, which provides a flexible and accessible API. Chose it over native HTML5 drag & drop because it provides accessibility-first design with full keyboard navigation support and React-optimized performance with proper state management integration.
+
+### Testing & Quality
+
+Vitest with React testing library 
+
+
